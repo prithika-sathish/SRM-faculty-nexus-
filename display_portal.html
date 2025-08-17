@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Faculty Activity Search Portal | SRM Vadapalani Campus</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="display_portal_style.css" />
+    <link rel="icon" type="image/x-icon" href="assets/images/icon.webp" />
+    <link
+      rel="stylesheet"
+      async
+      defer
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
+      integrity="sha512-5Hs3dF2AEPkpNAR7UiOHba+lRSJNeM2ECkwxUIxC1Q/FLycGTbNapWXB4tP889k5T5Ju8fs4b1P5z/iB4nMfSQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <script type="module" src="config.js"></script>
+    <script defer type="module" src="display_portal_script.js"></script>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <div class="navbar">
+      <img class="navbar-logo" alt="logo" src="assets/images/logo.webp" />
+      <div class="btns">
+        <a href="index.html" class="nav-link">
+          <button><span class="fa fa-user-shield"></span> Admin</button>
+        </a>
+      </div>
+    </div>
+
+    <main class="main-content">
+      <!-- Hero Section -->
+      <div class="hero-section">
+        <h1>Faculty Activity Search Portal</h1>
+        <p>Search and explore faculty activities across different categories</p>
+      </div>
+
+      <!-- Search Section -->
+      <div class="search-wrapper">
+        <form id="searchForm" class="search-form">
+          <div class="search-grid">
+            <div class="form-group">
+              <label for="searchActivityType">Activity Type</label>
+              <div class="select-wrapper">
+                <select id="searchActivityType" required>
+                  <option value="">Choose an activity...</option>
+                  <option value="research_paper">Research Paper</option>
+                  <option value="fdp">Faculty Development Program (FDP)</option>
+                  <option value="workshop">Workshop</option>
+                  <option value="conference">Conference</option>
+                  <option value="seminar">Seminar</option>
+                  <option value="uhv">UHV</option>
+                  <option value="fiip">FIIP</option>
+                  <option value="orientation">Orientation Program</option>
+                  <option value="moocs">MOOCs</option>
+                  <option value="resource_person">Resource Person</option>
+                  <option value="others">Other Activities</option>
+                </select>
+                <i class="fas fa-chevron-down"></i>
+              </div>
+            </div>
+
+            <div class="form-group date-group">
+              <label for="searchStartDate">Start Date</label>
+              <div class="date-wrapper duration">
+                <input type="date" id="searchStartDate" required />
+                <i class="fas fa-calendar"></i>
+              </div>
+            </div>
+
+            <div class="form-group date-group">
+              <label for="searchEndDate">End Date</label>
+              <div class="date-wrapper duration">
+                <input type="date" id="searchEndDate" required />
+                <i class="fas fa-calendar"></i>
+              </div>
+            </div>
+
+            <div class="form-group search-button-group">
+              <button type="submit" id="searchButton">
+                <span class="fa fa-search"></span>
+                Search Activities
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="researchPaperFields"
+            class="research-paper-grid"
+            style="display: none"
+          >
+            <div class="form-group">
+              <label for="searchAuthor">Author Name *</label>
+              <div class="input-wrapper">
+                <input
+                  type="text"
+                  id="searchAuthor"
+                  name="searchAuthor"
+                  placeholder="Enter author name"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="searchImpactFactor"
+                >Impact Factor Greater Than (Optional)</label
+              >
+              <div class="input-wrapper">
+                <input
+                  type="number"
+                  id="searchImpactFactor"
+                  name="searchImpactFactor"
+                  step="0.01"
+                  min="0"
+                  placeholder="Enter minimum impact factor"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="searchIndexed">Indexed Journal (Optional)</label>
+              <div class="select-wrapper">
+                <select id="searchIndexed" name="searchIndexed">
+                  <option value="">Any</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+                <i class="fas fa-chevron-down"></i>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Results Container -->
+      <div id="searchResults" class="results-container">
+        <!-- Results will be dynamically populated here -->
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>
+        &copy; 2024 SRM Institute of Science and Technology, Vadapalani Campus.
+        All rights reserved.
+      </p>
+    </footer>
+
+    <!-- Add this right after the <body> tag -->
+    <div class="loading-overlay">
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Fetching results...</div>
+      </div>
+    </div>
+  </body>
+</html>

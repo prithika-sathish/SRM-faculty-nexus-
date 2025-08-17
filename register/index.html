@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Crop & Edit</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            overflow: hidden;
+        }
+        .upload-section {
+            width: 30em;
+            padding: 30px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            margin:auto;
+        }
+        #dropArea {
+          width:30em;
+          height:15em;
+          margin:auto;
+            border: 3px dashed #3498db;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-size: cover;
+            background-position: center;
+        }
+        #dropArea:hover {
+            border-color: #2980b9;
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        #dropArea.dragover {
+            border-color: #27ae60;
+            background-color: rgba(39, 174, 96, 0.1);
+        }
+        .editor-container{
+          width:100%;
+          height: 100vh;
+          margin:auto;
+          position:absolute;
+          top:0;
+          left:0;
+          background: rgba(0,0,0,0.2);
+          backdrop-filter:blur(5px);
+          display:none;
+        }
+        .editor-section {
+          padding: 2%;
+            width: 90%;
+            background-color: #ffffff;
+            margin:auto;
+            flex-direction: column;
+
+            
+        }
+        .editor-controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background-color: #f1f3f5;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .editor-controls button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .editor-controls button:hover {
+            background-color: #2980b9;
+        }
+        .editor-preview {
+            position: relative;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        #cropArea {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #cropOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        #cropOverlay .overlay {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .crop-guide {
+            position: absolute;
+            top: 25%;
+            left: 25%;
+            width: 50%;
+            height: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        }
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .zoom-controls input {
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div id="dropArea">
+            <p class="img_prompt">Click or Drag & Drop</p>
+        </div>
+        
+        <div class="editor-container">
+          <div class="editor-section">
+              <div class="editor-controls">
+                  <button id="resetButton">Reset</button>
+                  <button id="applyButton">Apply Crop</button>
+              </div>
+              <div class="editor-preview">
+                  <div id="cropArea">
+                      <div id="cropOverlay">
+                          <div class="crop-guide"></div>
+                      </div>
+                  </div>
+              </div>
+              <div class="zoom-controls">
+                  <button id="zoomOutButton">-</button>
+                  <input type="range" id="zoomSlider" min="0.5" max="3" step="0.1" value="1">
+                  <button id="zoomInButton">+</button>
+              </div>
+          </div>
+        </div>
+    </div>
+
+    <script>
+
+        const dropArea = document.getElementById('dropArea');
+        const cropArea = document.getElementById('cropArea');
+        const resetButton = document.getElementById('resetButton');
+        const applyButton = document.getElementById('applyButton');
+        const zoomSlider = document.getElementById('zoomSlider');
+        const zoomOutButton = document.getElementById('zoomOutButton');
+        const zoomInButton = document.getElementById('zoomInButton');
+
+        let currentImage = null;
+        let isDragging = false;
+        let startX, startY, imageX = 0, imageY = 0;
+        let scale = 1;
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.onload = () => {
+                    // Clear previous content
+                    cropArea.innerHTML = '';
+                    
+                    // Create overlay again
+                    const cropOverlay = document.createElement('div');
+                    cropOverlay.id = 'cropOverlay';
+                    const cropGuide = document.createElement('div');
+                    cropGuide.classList.add('crop-guide');
+                    cropOverlay.appendChild(cropGuide);
+                    
+                    cropArea.appendChild(img);
+                    cropArea.appendChild(cropOverlay);
+                    
+                    
+
+                    // Style image
+                    img.style.maxWidth = '100%';
+                    img.style.maxHeight = '100%';
+                    img.style.position = 'absolute';
+                    img.style.cursor = 'move';
+                    document.getElementsByClassName("editor-container")[0].style.display='block';
+                    currentImage = img;
+                    setupImageInteractions(img);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function setupImageInteractions(img) {
+            img.addEventListener('mousedown', startDragging);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDragging);
+        }
+
+        function startDragging(e) {
+          e.preventDefault();
+            isDragging = true;
+            startX = e.clientX - imageX;
+            startY = e.clientY - imageY;
+            if (currentImage) currentImage.style.cursor = 'grabbing';
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            imageX = e.clientX - startX;
+            imageY = e.clientY - startY;
+            if (currentImage) {
+                currentImage.style.transform = `translate(${imageX}px, ${imageY}px) scale(${scale})`;
+            }
+        }
+
+        function stopDragging() {
+            isDragging = false;
+            if (currentImage) currentImage.style.cursor = 'move';
+        }
+
+        function resetImage() {
+            if (!currentImage) return;
+            imageX = 0;
+            imageY = 0;
+            scale = 1;
+            zoomSlider.value = 1;
+            currentImage.style.transform = `translate(0px, 0px) scale(1)`;
+        }
+
+        function applyCrop() {
+            // Ensure we have an image and crop guide
+            const cropGuide = document.querySelector('.crop-guide');
+            if (!currentImage || !cropGuide) {
+                alert('Please upload an image first');
+                return;
+            }
+
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                const cropRect = cropGuide.getBoundingClientRect();
+                const imageRect = currentImage.getBoundingClientRect();
+
+                // Calculate crop coordinates
+                const cropX = (cropRect.left - imageRect.left) / scale;
+                const cropY = (cropRect.top - imageRect.top) / scale;
+                const cropWidth = cropRect.width / scale;
+                const cropHeight = cropRect.height / scale;
+
+                canvas.width = cropWidth;
+                canvas.height = cropHeight;
+
+                ctx.drawImage(
+                    currentImage, 
+                    cropX, cropY, cropWidth, cropHeight, 
+                    0, 0, cropWidth, cropHeight
+                );
+
+                // Update drop area and preview
+                document.getElementsByClassName("editor-container")[0].style.display='none';
+                dropArea.style.backgroundImage = `url(${canvas.toDataURL()})`;
+                dropArea.style.backgroundSize = 'cover';
+                dropArea.style.backgroundPosition = 'center';
+                return canvas.toDataURL();
+                document.getElementsByClassName("img_prompt")[0].remove();
+            } catch (error) {
+                console.error('Crop Error:', error);
+                alert('An error occurred while cropping. Please try again.');
+            }
+        }
+
+        // Event Listeners for Upload
+        dropArea.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => handleFile(e.target.files[0]);
+            input.click();
+        });
+
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('dragover');
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('dragover');
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            handleFile(file);
+        });
+
+        // Zoom Controls
+        zoomSlider.addEventListener('input', (e) => {
+            scale = parseFloat(e.target.value);
+            if (currentImage) {
+                currentImage.style.transform = `translate(${imageX}px, ${imageY}px) scale(${scale})`;
+            }
+        });
+
+        zoomInButton.addEventListener('click', () => {
+            if (scale < 3) {
+                scale += 0.1;
+                zoomSlider.value = scale;
+                if (currentImage) {
+                    currentImage.style.transform = `translate(${imageX}px, ${imageY}px) scale(${scale})`;
+                }
+            }
+        });
+
+        zoomOutButton.addEventListener('click', () => {
+            if (scale > 0.5) {
+                scale -= 0.1;
+                zoomSlider.value = scale;
+                if (currentImage) {
+                    currentImage.style.transform = `translate(${imageX}px, ${imageY}px) scale(${scale})`;
+                }
+            }
+        });
+        document.getElementById("cropArea").addEventListener("wheel",(e)=>{
+          e.preventDefault();
+          if (e.deltaY > 0){
+            zoomOutButton.click();
+          }
+          else if (e.deltaY < 0){
+            zoomInButton.click();
+          }
+        })
+
+        // Reset and Apply Buttons
+        resetButton.addEventListener('click', resetImage);
+        applyButton.addEventListener('click', applyCrop);
+    </script>
+</body>
+</html>

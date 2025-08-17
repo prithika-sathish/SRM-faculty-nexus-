@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Faculty Profile | SRM Vadapalani Campus</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="image/x-icon" href="assets/images/icon.webp" />
+    <script
+      src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"
+      type="module"
+    ></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js"
+      type="module"
+    ></script>
+    <script
+      type="module"
+      src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      async
+      defer
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
+      integrity="sha512-5Hs3dF2AEPkpNAR7UiOHba+lRSJNeM2ECkwxUIxC1Q/FLycGTbNapWXB4tP889k5T5Ju8fs4b1P5z/iB4nMfSQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <script type="module" defer src="config.js"></script>
+    <script type="module" defer src="index.js"></script>
+  </head>
+  <body>
+    <div class="navbar">
+      <img class="navbar-logo" alt="logo" src="assets/images/logo.webp" />
+      <div class="btns">
+        <acronym title="Login" id="useracronym"
+          ><button id="login">Login</button></acronym
+        >
+      </div>
+    </div>
+    <div class="workspace"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Updating...</div>
+      </div>
+    </div>
+  </body>
+</html>
